@@ -1,1 +1,3 @@
-# slash-commands-example-bot
+# Slash Bot
+
+A small bot with some slash-commands
