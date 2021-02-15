@@ -5,7 +5,7 @@ from dislash import slash_commands
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 slash = slash_commands.SlashClient(client)
-token = os.environ.get('bot_token')
+token = str(os.environ.get('bot_token'))
 
 
 #--------------------------+
