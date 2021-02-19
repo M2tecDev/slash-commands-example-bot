@@ -1,1 +1,1 @@
-dislash.py
+dislash.py --upgrade
