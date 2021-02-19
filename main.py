@@ -1,16 +1,21 @@
 import discord, os
 from discord.ext import commands
 from dislash import slash_commands
+from dislash.interactions import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 slash = slash_commands.SlashClient(client)
 token = str(os.environ.get('bot_token'))
+guild_ids = [
+    808030843078836254
+]
 
 
 #--------------------------+
 #        Commands          |
 #--------------------------+
+@commands.cooldown(1, 5, commands.BucketType.member)
 @client.command()
 async def ping(ctx):
     await ctx.send(f"Pong: {client.latency * 1000:.0f}")
@@ -19,12 +24,27 @@ async def ping(ctx):
 #--------------------------+
 #     Slash-Commands       |
 #--------------------------+
-@slash.command()
+@slash.command(guild_ids=guild_ids, description="Says Hello")
 async def hello(ctx):
-    await ctx.reply('Hello!')
+    await ctx.reply('Hello!', hide_user_input=True, ephemeral=True)
 
 
-@slash.command()
+@slash.command(guild_ids=guild_ids, description="Wanna see it?")
+async def secret(ctx):
+    await ctx.reply("Confidential message 😓😲😔🥱😒😖", hide_user_input=True, ephemeral=True)
+
+
+@slash.command(
+    guild_ids=guild_ids,
+    description="Creates an embed",
+    options=[
+        Option("title", "Creates a title", Type.STRING),
+        Option("description", "Creates a description", Type.STRING),
+        Option("color", "Colors the embed", Type.STRING),
+        Option("image_url", "URL of the embed's image", Type.STRING),
+        Option("footer", "Creates a footer", Type.STRING),
+        Option("footer_url", "URL of the footer image", Type.STRING)
+    ])
 async def embed(ctx):
     title = ctx.data.get_option('title')
     desc = ctx.data.get_option('description')
@@ -56,7 +76,32 @@ async def embed(ctx):
     await ctx.send(embed=reply)
 
 
-@slash.command()
+@slash.command(
+    guild_ids=guild_ids,
+    description="Sends a picture",
+    options=[
+        Option("animal", "Pictures of animals", Type.SUB_COMMAND, options=[
+            Option("choice", "Choose on of them", Type.STRING, True, choices=[
+                OptionChoice("Cat", "cat"),
+                OptionChoice("Dog", "dog"),
+                OptionChoice("Parrot", "parrot")
+            ])
+        ]),
+        Option("car", "Pictures os cars", Type.SUB_COMMAND, options=[
+            Option("choice", "Choose one of these", Type.STRING, True, choices=[
+                OptionChoice("F1", "f1"),
+                OptionChoice("Dragster", "dragster"),
+                OptionChoice("Monstertruck", "monstertruck")
+            ])
+        ]),
+        Option("aircraft", "Pictures of aircrafts", Type.SUB_COMMAND, options=[
+            Option("choice", "Choose one of these", Type.STRING, True, choices=[
+                OptionChoice("Airbus", "airbus"),
+                OptionChoice("Helicopter", "helicopter"),
+                OptionChoice("Supersonic Jet", "jet")
+            ])
+        ])
+    ])
 async def pic(ctx):
     subcmd = ctx.data.options[0]
     choice = subcmd.get_option("choice").value
@@ -82,6 +127,14 @@ async def pic(ctx):
     )
     reply.set_image(url=pics[choice])
     await ctx.send(embed=reply)
+
+
+@slash.command(
+    guild_ids=guild_ids,
+    description="Say something",
+    options=[Option("text", "Type anything", Type.STRING, True)])
+async def say(ctx):
+    await ctx.send(ctx.data.get_option('text').value)
 
 
 #--------------------------+
