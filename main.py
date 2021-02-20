@@ -26,7 +26,7 @@ async def ping(ctx):
 #--------------------------+
 @slash.command(guild_ids=guild_ids, description="Says Hello")
 async def hello(ctx):
-    await ctx.reply('Hello!')
+    await ctx.reply('Hello!', hide_user_input=True, ephemeral=True)
 
 
 @slash.command(guild_ids=guild_ids, description="Wanna see it?")
@@ -45,32 +45,32 @@ async def secret(ctx):
         Option("footer", "Creates a footer", Type.STRING),
         Option("footer_url", "URL of the footer image", Type.STRING)
     ])
-async def embed(ctx):
-    title = ctx.data.get_option('title')
-    desc = ctx.data.get_option('description')
-    color = ctx.data.get_option('color')
-    image_url = ctx.data.get_option('image_url')
-    footer = ctx.data.get_option('footer')
-    footer_url = ctx.data.get_option('footer_url')
+async def embed(ctx: Interaction):
+    title = ctx.data.get('title')
+    desc = ctx.data.get('description')
+    color = ctx.data.get('color')
+    image_url = ctx.data.get('image_url')
+    footer = ctx.data.get('footer')
+    footer_url = ctx.data.get('footer_url')
     if color is not None:
         try:
-            color = await commands.ColorConverter().convert(ctx, color.value)
+            color = await commands.ColorConverter().convert(ctx, color)
         except:
             color = discord.Color.default()
     else:
         color = discord.Color.default()
     reply = discord.Embed(color=color)
     if title is not None:
-        reply.title = title.value
+        reply.title = title
     if desc is not None:
-        reply.description = desc.value
+        reply.description = desc
     if image_url is not None:
-        reply.set_image(url=image_url.value)
+        reply.set_image(url=image_url)
     pl = {}
     if footer is not None:
-        pl['text'] = footer.value
+        pl['text'] = footer
     if footer_url is not None:
-        pl['icon_url'] = footer_url.value
+        pl['icon_url'] = footer_url
     if len(pl) > 0:
         reply.set_footer(**pl)
     await ctx.send(embed=reply)
@@ -102,9 +102,9 @@ async def embed(ctx):
             ])
         ])
     ])
-async def pic(ctx):
-    subcmd = ctx.data.options[0]
-    choice = subcmd.get_option("choice").value
+async def pic(ctx: Interaction):
+    subcmd = ctx.data.options.values()[0]
+    choice = subcmd.get("choice")
     pics = {
         "cat": "https://cdn.discordapp.com/attachments/642107341868630024/810550425735790602/Depositphotos_9979039_xl-2015.png",
         "dog": "https://cdn.discordapp.com/attachments/642107341868630024/810550486482681856/51525059_401.png",
