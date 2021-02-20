@@ -26,7 +26,7 @@ async def ping(ctx):
 #--------------------------+
 @slash.command(guild_ids=guild_ids, description="Says Hello")
 async def hello(ctx):
-    await ctx.reply('Hello!', hide_user_input=True, ephemeral=True)
+    await ctx.reply('Hello!')
 
 
 @slash.command(guild_ids=guild_ids, description="Wanna see it?")
