@@ -12,6 +12,18 @@ guild_ids = [
 ]
 
 
+class CE:
+    vbd = "<:verified_bot_developer:812692120133042178>"
+    staff = "<:staff:812692120049156127>"
+    partner = "<:partner:812692120414322688>"
+    nitro = "<:nitro:812692119990566933>"
+    events = "<:hypesquad_events:812692120358879262>"
+    hunter = "<:bug_hunter:812692120313266176>"
+    brilliance = "<:brilliance:812692120326373426>"
+    bravery = "<:bravery:812692120015339541>"
+    balance = "<:balance:812692120270798878>"
+
+
 #--------------------------+
 #        Commands          |
 #--------------------------+
@@ -24,18 +36,17 @@ async def ping(ctx):
 #--------------------------+
 #     Slash-Commands       |
 #--------------------------+
-@slash.command(guild_ids=guild_ids, description="Says Hello")
+@slash.command(description="Says Hello")
 async def hello(ctx):
     await ctx.reply('Hello!')
 
 
-@slash.command(guild_ids=guild_ids, description="Wanna see it?")
+@slash.command(description="Wanna see it?")
 async def secret(ctx):
     await ctx.reply("Confidential message 😓😲😔🥱😒😖", hide_user_input=True, ephemeral=True)
 
 
 @slash.command(
-    guild_ids=guild_ids,
     description="Creates an embed",
     options=[
         Option("title", "Creates a title", Type.STRING),
@@ -77,7 +88,6 @@ async def embed(ctx: Interaction):
 
 
 @slash.command(
-    guild_ids=guild_ids,
     description="Sends a picture",
     options=[
         Option("animal", "Pictures of animals", Type.SUB_COMMAND, options=[
@@ -130,11 +140,44 @@ async def pic(ctx: Interaction):
 
 
 @slash.command(
-    guild_ids=guild_ids,
     description="Say something",
     options=[Option("text", "Type anything", Type.STRING, True)])
 async def say(ctx):
-    await ctx.send(ctx.data.get_option('text').value)
+    await ctx.send(ctx.data.get('text'))
+
+
+@slash.command(
+    name="user-info",
+    description="Shows user profile",
+    options=[Option("user", "Which user to inspect", Type.USER)] )
+async def user_info(ctx: Interaction):
+    badges = {
+        "staff": CE.staff,
+        "partner": CE.partner,
+        "hypesquad": CE.events,
+        "bug_hunter": CE.hunter,
+        "hypesquad_bravery": CE.bravery,
+        "hypesquad_brilliance": CE.brilliance,
+        "hypesquad_balance": CE.balance,
+        "verified_bot_developer": CE.vbd
+    }
+    user = ctx.data.get("user", ctx.author)
+    badge_string = ' '.join(badges[pf.name] for pf in user.public_flags.all() if pf.name in badges)
+    reply = discord.Embed(color=discord.Color.blurple())
+    reply.title = str(user)
+    reply.set_thumbnail(url=user.avatar_url)
+    reply.add_field(
+        name="Registration",
+        value=(
+            f"⌚ **Created at:** `{user.created_at}`\n"
+            f"📋 **ID:** `{user.id}`"
+        )
+    )
+    reply.add_field(
+        name="Badges",
+        value=f"`->` {badge_string}"
+    )
+    await ctx.send(embed=reply)
 
 
 #--------------------------+
