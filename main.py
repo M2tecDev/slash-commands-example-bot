@@ -113,7 +113,7 @@ async def embed(ctx: Interaction):
         ])
     ])
 async def pic(ctx: Interaction):
-    subcmd = ctx.data.options.values()[0]
+    subcmd = list(ctx.data.options.values())[0]
     choice = subcmd.get("choice")
     pics = {
         "cat": "https://cdn.discordapp.com/attachments/642107341868630024/810550425735790602/Depositphotos_9979039_xl-2015.png",
@@ -171,7 +171,8 @@ async def user_info(ctx: Interaction):
         value=(
             f"⌚ **Created at:** `{user.created_at}`\n"
             f"📋 **ID:** `{user.id}`"
-        )
+        ),
+        inline=False
     )
     reply.add_field(
         name="Badges",
