@@ -174,10 +174,11 @@ async def user_info(ctx: Interaction):
         ),
         inline=False
     )
-    reply.add_field(
-        name="Badges",
-        value=f"`->` {badge_string}"
-    )
+    if len(badge_string) > 1:
+        reply.add_field(
+            name="Badges",
+            value=f"`->` {badge_string}"
+        )
     await ctx.send(embed=reply)
 
 
