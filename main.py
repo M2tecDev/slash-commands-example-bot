@@ -7,9 +7,6 @@ from dislash.interactions import *
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 slash = slash_commands.SlashClient(client)
 token = str(os.environ.get('bot_token'))
-guild_ids = [
-    808030843078836254
-]
 
 
 class CE:
