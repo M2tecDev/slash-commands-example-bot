@@ -1,1 +1,1 @@
-dislash.py==0.3.2
+dislash.py==0.3.6
