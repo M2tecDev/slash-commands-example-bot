@@ -54,12 +54,12 @@ async def secret(ctx):
         Option("footer_url", "URL of the footer image", Type.STRING)
     ])
 async def embed(ctx: Interaction):
-    title = ctx.data.get('title')
-    desc = ctx.data.get('description')
-    color = ctx.data.get('color')
-    image_url = ctx.data.get('image_url')
-    footer = ctx.data.get('footer')
-    footer_url = ctx.data.get('footer_url')
+    title = ctx.get('title')
+    desc = ctx.get('description')
+    color = ctx.get('color')
+    image_url = ctx.get('image_url')
+    footer = ctx.get('footer')
+    footer_url = ctx.get('footer_url')
     if color is not None:
         try:
             color = await commands.ColorConverter().convert(ctx, color)
@@ -110,7 +110,7 @@ async def embed(ctx: Interaction):
         ])
     ])
 async def pic(ctx: Interaction):
-    subcmd = list(ctx.data.options.values())[0]
+    subcmd = ctx.option_at(0)
     choice = subcmd.get("choice")
     pics = {
         "cat": "https://cdn.discordapp.com/attachments/642107341868630024/810550425735790602/Depositphotos_9979039_xl-2015.png",
@@ -158,7 +158,7 @@ async def user_info(ctx: Interaction):
         "hypesquad_balance": CE.balance,
         "verified_bot_developer": CE.vbd
     }
-    user = ctx.data.get("user", ctx.author)
+    user = ctx.get("user", ctx.author)
     badge_string = ' '.join(badges[pf.name] for pf in user.public_flags.all() if pf.name in badges)
     reply = discord.Embed(color=discord.Color.blurple())
     reply.title = str(user)
