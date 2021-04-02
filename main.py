@@ -40,7 +40,7 @@ async def hello(ctx):
 
 @slash.command(description="Wanna see it?")
 async def secret(ctx):
-    await ctx.reply("Confidential message 😓😲😔🥱😒😖", hide_user_input=True, ephemeral=True)
+    await ctx.reply("Confidential message 😓😲😔🥱😒😖", ephemeral=True)
 
 
 @slash.command(
