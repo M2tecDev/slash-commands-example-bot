@@ -1,24 +1,12 @@
+import asyncio
 import discord, os
 from discord.ext import commands
-from dislash import slash_commands
-from dislash.interactions import *
+from dislash import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-slash = slash_commands.SlashClient(client)
+slash = SlashClient(client)
 token = str(os.environ.get('bot_token'))
-
-
-class CE:
-    vbd = "<:verified_bot_developer:812692120133042178>"
-    staff = "<:staff:812692120049156127>"
-    partner = "<:partner:812692120414322688>"
-    nitro = "<:nitro:812692119990566933>"
-    events = "<:hypesquad_events:812692120358879262>"
-    hunter = "<:bug_hunter:812692120313266176>"
-    brilliance = "<:brilliance:812692120326373426>"
-    bravery = "<:bravery:812692120015339541>"
-    balance = "<:balance:812692120270798878>"
 
 
 #--------------------------+
@@ -34,6 +22,7 @@ async def ping(ctx):
 #     Slash-Commands       |
 #--------------------------+
 @slash.command(description="Says Hello")
+@slash_commands.cooldown(1, 3, slash_commands.BucketType.member)
 async def hello(ctx):
     await ctx.reply('Hello!')
 
@@ -149,24 +138,25 @@ async def say(ctx):
     options=[Option("user", "Which user to inspect", Type.USER)] )
 async def user_info(ctx: Interaction):
     badges = {
-        "staff": CE.staff,
-        "partner": CE.partner,
-        "hypesquad": CE.events,
-        "bug_hunter": CE.hunter,
-        "hypesquad_bravery": CE.bravery,
-        "hypesquad_brilliance": CE.brilliance,
-        "hypesquad_balance": CE.balance,
-        "verified_bot_developer": CE.vbd
+        "staff": "<:staff:812692120049156127>",
+        "partner": "<:partner:812692120414322688>",
+        "hypesquad": "<:hypesquad_events:812692120358879262>",
+        "bug_hunter": "<:bug_hunter:812692120313266176>",
+        "hypesquad_bravery": "<:bravery:812692120015339541>",
+        "hypesquad_brilliance": "<:brilliance:812692120326373426>",
+        "hypesquad_balance": "<:balance:812692120270798878>",
+        "verified_bot_developer": "<:verified_bot_developer:812692120133042178>"
     }
     user = ctx.get("user", ctx.author)
     badge_string = ' '.join(badges[pf.name] for pf in user.public_flags.all() if pf.name in badges)
+    created_at = str(user.created_at)[:-7]
     reply = discord.Embed(color=discord.Color.blurple())
     reply.title = str(user)
     reply.set_thumbnail(url=user.avatar_url)
     reply.add_field(
         name="Registration",
         value=(
-            f"⌚ **Created at:** `{user.created_at}`\n"
+            f"⌚ **Created at:** `{created_at}`\n"
             f"📋 **ID:** `{user.id}`"
         ),
         inline=False
@@ -177,6 +167,77 @@ async def user_info(ctx: Interaction):
             value=f"`->` {badge_string}"
         )
     await ctx.send(embed=reply)
+
+
+@slash.command(description="Play with buttons")
+async def buttons(ctx: SlashInteraction):
+    pages = [
+        "This is page 1.\n"\
+        "It has some content.\n"\
+        "It even does have 3rd line",
+
+        "This is page 2.\n"\
+        "You definitely pressed a button.\n"\
+        "Which is cool, but, there's page 3",
+
+        "This is page 3.\n"\
+        "As I promised"
+    ]
+    page = 0
+    
+    emb = discord.Embed(
+        title="Tiny book",
+        description=pages[page],
+        color=discord.Color.green()
+    )
+    # Create some buttons
+    row_of_buttons = ActionRow(
+        Button(
+            style=ButtonStyle.green,
+            label="<-",
+            custom_id="prev"
+        ),
+        Button(
+            style=ButtonStyle.green,
+            label="->",
+            custom_id="next"
+        )
+    )
+    # Send a message
+    msg = await ctx.reply(
+        embed=emb,
+        components=[row_of_buttons]
+    )
+
+    def check(inter):
+        return (
+            inter.message.id == msg.id and
+            inter.author.id == ctx.author.id
+        )
+    # Process button clicks
+    for _ in range(100): # Max 100 clicks per command
+        try:
+            inter = await slash.wait_for_button_click(check, timeout=60)
+        except asyncio.TimeoutError:
+            await msg.edit(components=[])
+            return
+        # inter is instance of ButtonInteraction
+        # Get the clicked button id
+        ID = inter.clicked_button.custom_id
+        # Maybe change the page
+        if ID == "prev":
+            if page > 0:
+                page -= 1
+        elif ID == "next":
+            if page + 1 < len(pages):
+                page += 1
+        # Respond
+        await inter.reply(type=6)
+        # Edit the message
+        emb.description = pages[page]
+        await msg.edit(embed=emb)
+    
+    await msg.edit(components=[])
 
 
 #--------------------------+
