@@ -5,7 +5,7 @@ from dislash import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-slash = SlashClient(client)
+slash = SlashClient(client, show_warnings=True)
 token = str(os.environ.get('bot_token'))
 
 
@@ -42,7 +42,7 @@ async def secret(ctx):
         Option("footer", "Creates a footer", Type.STRING),
         Option("footer_url", "URL of the footer image", Type.STRING)
     ])
-async def embed(ctx: Interaction):
+async def embed(ctx: SlashInteraction):
     title = ctx.get('title')
     desc = ctx.get('description')
     color = ctx.get('color')
@@ -98,7 +98,7 @@ async def embed(ctx: Interaction):
             ])
         ])
     ])
-async def pic(ctx: Interaction):
+async def pic(ctx: SlashInteraction):
     subcmd = ctx.option_at(0)
     choice = subcmd.get("choice")
     pics = {
@@ -136,7 +136,7 @@ async def say(ctx):
     name="user-info",
     description="Shows user profile",
     options=[Option("user", "Which user to inspect", Type.USER)] )
-async def user_info(ctx: Interaction):
+async def user_info(ctx: SlashInteraction):
     badges = {
         "staff": "<:staff:812692120049156127>",
         "partner": "<:partner:812692120414322688>",
@@ -231,11 +231,9 @@ async def buttons(ctx: SlashInteraction):
         elif ID == "next":
             if page + 1 < len(pages):
                 page += 1
-        # Respond
-        await inter.reply(type=6)
-        # Edit the message
+        # Update the message
         emb.description = pages[page]
-        await msg.edit(embed=emb)
+        await inter.reply(embed=emb, type=ResponseType.UpdateMessage)
     
     await msg.edit(components=[])
 
