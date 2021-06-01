@@ -2,6 +2,8 @@ import asyncio
 import discord, os
 from discord.ext import commands
 from dislash import *
+# A local file for cool menus
+from pagination import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
@@ -210,14 +212,11 @@ async def buttons(ctx: SlashInteraction):
     )
 
     def check(inter):
-        return (
-            inter.message.id == msg.id and
-            inter.author.id == ctx.author.id
-        )
+        return inter.author.id == ctx.author.id
     # Process button clicks
     for _ in range(100): # Max 100 clicks per command
         try:
-            inter = await slash.wait_for_button_click(check, timeout=60)
+            inter = await msg.wait_for_button_click(check, timeout=60)
         except asyncio.TimeoutError:
             await msg.edit(components=[])
             return
@@ -236,6 +235,97 @@ async def buttons(ctx: SlashInteraction):
         await inter.reply(embed=emb, type=ResponseType.UpdateMessage)
     
     await msg.edit(components=[])
+
+
+@slash.command(name="menu-example", description="Almost HTML lol")
+async def menu_example(ctx: SlashInteraction):
+    # Build a menu
+    menu = Element(
+        header="Menu example",
+        long_desc="Navigate through all the entries",
+        elements=[
+            Element(
+                header="Chapter 1",
+                long_desc="This is chapter 1 content. Truly entertaining stuff"
+            ),
+            Element(
+                header="Chapter 2",
+                long_desc="This is chapter 2 content. Cool"
+            ),
+            Element(
+                header="Chapter 3",
+                long_desc="This is chapter 3 content. Yo, look at this car: 🚕"
+            ),
+            Element(
+                header="Super Chapter",
+                long_desc="I have subchapters",
+                elements=[
+                    Element(
+                        header="Penguins",
+                        long_desc="They are cute, I guess"
+                    ),
+                    Element(
+                        header="Crocodiles",
+                        long_desc="Absolutely not cute creatures"
+                    )
+                ]
+            )
+        ]
+    )
+    # Build buttons
+    button_row_1 = ActionRow(
+        Button(
+            style=ButtonStyle.blurple,
+            emoji="⬆",
+            custom_id="up"
+        ),
+        Button(
+            style=ButtonStyle.green,
+            label="Select",
+            custom_id="select"
+        )
+    )
+    button_row_2 = ActionRow(
+        Button(
+            style=ButtonStyle.blurple,
+            emoji="⬇",
+            custom_id="down"
+        ),
+        Button(
+            style=ButtonStyle.red,
+            label="Back",
+            custom_id="back"
+        )
+    )
+    # Send a message with buttons
+    emb = discord.Embed(
+        title=menu.header,
+        description=f"{menu.long_desc}\n\n{menu.display_elements()}"
+    )
+    msg = await ctx.send(embed=emb, components=[button_row_1, button_row_2])
+    # Process clicks
+    def check(inter):
+        return inter.author == ctx.author
+    while True:
+        # Wait for button click
+        try:
+            inter = await msg.wait_for_button_click(check, 60)
+        except asyncio.TimeoutError:
+            await inter.reply(embed=emb, components=[], type=ResponseType.UpdateMessage)
+        # Process the pressed button
+        ID = inter.clicked_button.custom_id
+        if ID == "down":
+            menu.next_elem()
+        elif ID == "up":
+            menu.prev_elem()
+        elif ID == "select":
+            menu = menu.element
+        elif ID == "back":
+            menu = menu.parent
+        emb.title = menu.header
+        emb.description = f"{menu.long_desc}\n\n{menu.display_elements()}"
+        # Response
+        await inter.reply(embed=emb, type=ResponseType.UpdateMessage)
 
 
 #--------------------------+
