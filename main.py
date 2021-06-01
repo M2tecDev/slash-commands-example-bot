@@ -311,7 +311,8 @@ async def menu_example(ctx: SlashInteraction):
         try:
             inter = await msg.wait_for_button_click(check, 60)
         except asyncio.TimeoutError:
-            await inter.reply(embed=emb, components=[], type=ResponseType.UpdateMessage)
+            await msg.edit(embed=emb, components=[])
+            return
         # Process the pressed button
         ID = inter.clicked_button.custom_id
         if ID == "down":
