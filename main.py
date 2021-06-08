@@ -303,30 +303,49 @@ async def menu_example(ctx: SlashInteraction):
         description=f"{menu.long_desc}\n\n{menu.display_elements()}"
     )
     msg = await ctx.send(embed=emb, components=[button_row_1, button_row_2])
-    # Process clicks
-    def check(inter):
-        return inter.author == ctx.author
-    while True:
-        # Wait for button click
-        try:
-            inter = await msg.wait_for_button_click(check, 60)
-        except asyncio.TimeoutError:
-            await msg.edit(embed=emb, components=[])
-            return
-        # Process the pressed button
-        ID = inter.clicked_button.custom_id
-        if ID == "down":
-            menu.next_elem()
-        elif ID == "up":
-            menu.prev_elem()
-        elif ID == "select":
-            menu = menu.element
-        elif ID == "back":
-            menu = menu.parent
+
+    # Click manager usage
+    
+    on_click = msg.create_click_listener(timeout=60)
+
+    def is_not_author(inter):
+        return inter.author != ctx.author
+    
+    @on_click.matching_condition(is_not_author, cancel_others=True, reset_timeout=False)
+    async def on_wrong_user(inter):
+        await inter.reply("You're not the author", ephemeral=True)
+    
+    @on_click.matching_id("down")
+    async def down(inter):
+        menu.next_elem()
+    
+    @on_click.matching_id("up")
+    async def up(inter):
+        menu.prev_elem()
+    
+    @on_click.matching_id("select")
+    async def select(inter):
+        nonlocal menu
+        menu = menu.element
+    
+    @on_click.matching_id("back")
+    async def back(inter):
+        nonlocal menu
+        menu = menu.parent
+    
+    @on_click.matching_condition(lambda inter: True)
+    async def response(inter):
         emb.title = menu.header
         emb.description = f"{menu.long_desc}\n\n{menu.display_elements()}"
-        # Response
         await inter.reply(embed=emb, type=ResponseType.UpdateMessage)
+
+    @on_click.timeout
+    async def on_timeout():
+        for button in button_row_1.components:
+            button.disabled = True
+        for button in button_row_2.components:
+            button.disabled = True
+        await msg.edit(embed=emb, components=[button_row_1, button_row_2])
 
 
 #--------------------------+
