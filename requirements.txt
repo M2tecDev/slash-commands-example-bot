@@ -1,2 +1,2 @@
-dislash.py==1.0.11
+dislash.py==1.0.13
 discord.py==1.7.2
