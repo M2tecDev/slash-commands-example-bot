@@ -44,16 +44,16 @@ async def secret(ctx):
         Option("footer", "Creates a footer", Type.STRING),
         Option("footer_url", "URL of the footer image", Type.STRING)
     ])
-async def embed(ctx: SlashInteraction):
-    title = ctx.get('title')
-    desc = ctx.get('description')
-    color = ctx.get('color')
-    image_url = ctx.get('image_url')
-    footer = ctx.get('footer')
-    footer_url = ctx.get('footer_url')
+async def embed(inter: SlashInteraction):
+    title = inter.get('title')
+    desc = inter.get('description')
+    color = inter.get('color')
+    image_url = inter.get('image_url')
+    footer = inter.get('footer')
+    footer_url = inter.get('footer_url')
     if color is not None:
         try:
-            color = await commands.ColorConverter().convert(ctx, color)
+            color = await commands.ColorConverter().convert(inter, color)
         except:
             color = discord.Color.default()
     else:
@@ -72,61 +72,89 @@ async def embed(ctx: SlashInteraction):
         pl['icon_url'] = footer_url
     if len(pl) > 0:
         reply.set_footer(**pl)
-    await ctx.send(embed=reply)
+    await inter.create_response(embed=reply)
 
+#--------------------------+
+# Command with subcommands |
+#--------------------------+
+@slash.command(description="Sends a picture")
+async def pic(inter):
+    # The basae command for subcommands
+    # Check the code below
+    pass
 
-@slash.command(
-    description="Sends a picture",
+@pic.sub_command(
+    description="Pictures of animals",
     options=[
-        Option("animal", "Pictures of animals", Type.SUB_COMMAND, options=[
-            Option("choice", "Choose on of them", Type.STRING, True, choices=[
-                OptionChoice("Cat", "cat"),
-                OptionChoice("Dog", "dog"),
-                OptionChoice("Parrot", "parrot")
-            ])
-        ]),
-        Option("car", "Pictures os cars", Type.SUB_COMMAND, options=[
-            Option("choice", "Choose one of these", Type.STRING, True, choices=[
-                OptionChoice("F1", "f1"),
-                OptionChoice("Dragster", "dragster"),
-                OptionChoice("Monstertruck", "monstertruck")
-            ])
-        ]),
-        Option("aircraft", "Pictures of aircrafts", Type.SUB_COMMAND, options=[
-            Option("choice", "Choose one of these", Type.STRING, True, choices=[
-                OptionChoice("Airbus", "airbus"),
-                OptionChoice("Helicopter", "helicopter"),
-                OptionChoice("Supersonic Jet", "jet")
-            ])
+        Option("choice", "Choose on of them", Type.STRING, True, choices=[
+            OptionChoice("Cat", "cat"),
+            OptionChoice("Dog", "dog"),
+            OptionChoice("Parrot", "parrot")
         ])
     ])
-async def pic(ctx: SlashInteraction):
-    subcmd = ctx.option_at(0)
-    choice = subcmd.get("choice")
+async def animal(inter, choice):
+    # This command is visivle as "/pic animal"
     pics = {
         "cat": "https://cdn.discordapp.com/attachments/642107341868630024/810550425735790602/Depositphotos_9979039_xl-2015.png",
         "dog": "https://cdn.discordapp.com/attachments/642107341868630024/810550486482681856/51525059_401.png",
-        "parrot": "https://cdn.discordapp.com/attachments/642107341868630024/810550543884746762/popugaj_d_850.png",
+        "parrot": "https://cdn.discordapp.com/attachments/642107341868630024/810550543884746762/popugaj_d_850.png"
+    }
+    reply = discord.Embed(
+        title="Adorable animal",
+        color=discord.Color.from_rgb(200, 200, 200)
+    )
+    reply.set_image(url=pics[choice])
+    await inter.create_response(embed=reply)
+
+@pic.sub_command(
+    description="Pictures os cars",
+    options=[
+        Option("choice", "Choose one of these", Type.STRING, True, choices=[
+            OptionChoice("F1", "f1"),
+            OptionChoice("Dragster", "dragster"),
+            OptionChoice("Monstertruck", "monstertruck")
+        ])
+    ])
+async def car(inter, choice):
+    # This command is visivle as "/pic car"
+    pics = {
         "f1": "https://cdn.discordapp.com/attachments/642107341868630024/810550602304061470/141385-27.png",
         "dragster": "https://cdn.discordapp.com/attachments/642107341868630024/810550764438552576/swamp-rat-37_1.png",
-        "monstertruck": "https://cdn.discordapp.com/attachments/642107341868630024/810550863856140338/-5f8PdoTxji0w6-VGoHDTBicP2Zdc9tFUIomBtdzwl5PebWq7JZ74I0WOos6CY13ldpCILhGKodFZUjRS5eLPNjYOwBMjK0HgCzV.png",
+        "monstertruck": "https://cdn.discordapp.com/attachments/642107341868630024/810550863856140338/-5f8PdoTxji0w6-VGoHDTBicP2Zdc9tFUIomBtdzwl5PebWq7JZ74I0WOos6CY13ldpCILhGKodFZUjRS5eLPNjYOwBMjK0HgCzV.png"
+    }
+    reply = discord.Embed(
+        title="Cool car",
+        color=discord.Color.from_rgb(200, 200, 200)
+    )
+    reply.set_image(url=pics[choice])
+    await inter.create_response(embed=reply)
+
+@pic.sub_command(
+    description="Pictures of aircrafts",
+    options=[
+        Option("choice", "Choose one of these", Type.STRING, True, choices=[
+            OptionChoice("Airbus", "airbus"),
+            OptionChoice("Helicopter", "helicopter"),
+            OptionChoice("Supersonic Jet", "jet")
+        ])
+    ])
+async def aircraft(inter, choice):
+    # This command is visivle as "/pic aircraft"
+    pics = {
         "airbus": "https://cdn.discordapp.com/attachments/642107341868630024/810551182153089044/42199782_401.png",
         "helicopter": "https://cdn.discordapp.com/attachments/642107341868630024/810551295185256489/2983453.png",
         "jet": "https://cdn.discordapp.com/attachments/642107341868630024/810551664771072020/images.png"
     }
-    titles = {
-        "animal": "Adorable animal",
-        "car": "Coolset car",
-        "aircraft": "Coolest aircraft"
-    }
     reply = discord.Embed(
-        title=titles[subcmd.name],
+        title="Modern aircraft",
         color=discord.Color.from_rgb(200, 200, 200)
     )
     reply.set_image(url=pics[choice])
-    await ctx.send(embed=reply)
+    await inter.create_response(embed=reply)
 
-
+#--------------------------+
+#      Other commands      |
+#--------------------------+
 @slash.command(
     description="Say something",
     options=[Option("text", "Type anything", Type.STRING, True)])
@@ -170,7 +198,9 @@ async def user_info(ctx: SlashInteraction):
         )
     await ctx.send(embed=reply)
 
-
+#--------------------------+
+#         Buttons          |
+#--------------------------+
 @slash.command(description="Play with buttons")
 async def buttons(ctx: SlashInteraction):
     pages = [
@@ -213,7 +243,8 @@ async def buttons(ctx: SlashInteraction):
 
     def check(inter):
         return inter.author.id == ctx.author.id
-    # Process button clicks
+    # One of the ways to process commands
+    # See also an example below
     for _ in range(100): # Max 100 clicks per command
         try:
             inter = await msg.wait_for_button_click(check, timeout=60)
@@ -307,11 +338,8 @@ async def menu_example(ctx: SlashInteraction):
     # Click manager usage
     
     on_click = msg.create_click_listener(timeout=60)
-
-    def is_not_author(inter):
-        return inter.author != ctx.author
     
-    @on_click.matching_condition(is_not_author, cancel_others=True, reset_timeout=False)
+    @on_click.not_from_user(ctx.author, cancel_others=True, reset_timeout=False)
     async def on_wrong_user(inter):
         await inter.reply("You're not the author", ephemeral=True)
     
@@ -333,7 +361,7 @@ async def menu_example(ctx: SlashInteraction):
         nonlocal menu
         menu = menu.parent
     
-    @on_click.matching_condition(lambda inter: True)
+    @on_click.no_checks()
     async def response(inter):
         emb.title = menu.header
         emb.description = f"{menu.long_desc}\n\n{menu.display_elements()}"
