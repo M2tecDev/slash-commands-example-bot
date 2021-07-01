@@ -268,7 +268,7 @@ async def buttons(ctx: SlashInteraction):
     await msg.edit(components=[])
 
 
-@slash.command(name="menu-example", description="Almost HTML lol")
+@slash.command(name="button-controls", description="Cool thing")
 async def menu_example(ctx: SlashInteraction):
     # Build a menu
     menu = Element(
@@ -375,6 +375,37 @@ async def menu_example(ctx: SlashInteraction):
             button.disabled = True
         await msg.edit(embed=emb, components=[button_row_1, button_row_2])
 
+
+@slash.command(name="select-menu", description="Play with select menus")
+async def select_menu(inter: SlashInteraction):
+    emojis = {"r": "🔴", "g": "🟢", "b": "🔵"}
+    menu = SelectMenu(
+        custom_id="test_menu",
+        placeholder="Select a couple of options",
+        max_values=3,
+        options=[
+            MenuOption("Red", "r", "Represents red color", emojis['r']),
+            MenuOption("Green", "g", "Represents green color", emojis['g']),
+            MenuOption("Blue", "b", "Represents blue color", emojis['b'])
+        ]
+    )
+    msg = await inter.reply("Choose your colors:", components=[menu])
+
+    def check(menu_inter):
+        return menu_inter.author == inter.author
+    
+    try:
+        menu_inter = await msg.wait_for_dropdown(check, timeout=60)
+    except asyncio.TimeoutError:
+        await msg.delete()
+    
+    elems = [emojis[opt.value] for opt in menu_inter.select_menu.selected_options]
+    await menu_inter.create_response(
+        f"Your colors: {' '.join(elems)}",
+        components=[],
+        type=7
+    )
+    
 
 #--------------------------+
 #         Events           |
