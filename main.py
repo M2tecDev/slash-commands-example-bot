@@ -7,7 +7,7 @@ from pagination import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-slash = SlashClient(client, show_warnings=True)
+slash = SlashClient(client)
 token = str(os.environ.get('bot_token'))
 
 
@@ -197,6 +197,34 @@ async def user_info(ctx: SlashInteraction):
             value=f"`->` {badge_string}"
         )
     await ctx.send(embed=reply)
+
+
+@slash.command(
+    description="Choose which notifications you want to get",
+    options=[
+        Option("updates", "Update pings", Type.BOOLEAN),
+        Option("news", "News pings", Type.BOOLEAN)
+    ]
+)
+async def notifications(inter, updates=False, news=False):
+    if inter.guild is None:
+        return
+    roles = []
+    if updates:
+        updates_role = discord.utils.get(inter.guild.roles, name="Updates")
+        roles.append(updates_role)
+    if news:
+        news_role = discord.utils.get(inter.guild.roles, name="News")
+        roles.append(news_role)
+    await inter.author.add_roles(*roles)
+    table = '\n'.join(f"> **<@&{role.id}>**" for role in roles)
+    emb = discord.Embed(
+        title="🔔 | Notifications",
+        description=f"**You've got these roles:**\n{table}",
+        color=discord.Color.gold()
+    )
+    emb.set_footer(text=inter.author, icon_url=inter.author.avatar_url)
+    await inter.respond(embed=emb)
 
 #--------------------------+
 #         Buttons          |
