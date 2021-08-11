@@ -220,7 +220,7 @@ async def notifications(inter, updates=False, news=False):
     table = '\n'.join(f"> **<@&{role.id}>**" for role in roles)
     emb = discord.Embed(
         title="🔔 | Notifications",
-        description=f"**You've got these roles:**\n{table}",
+        description=f"**You've received these roles:**\n{table}",
         color=discord.Color.gold()
     )
     emb.set_footer(text=inter.author, icon_url=inter.author.avatar_url)
