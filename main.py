@@ -200,31 +200,47 @@ async def user_info(ctx: SlashInteraction):
 
 
 @slash.command(
-    description="Choose which notifications you want to get",
-    options=[
-        Option("updates", "Update pings", Type.BOOLEAN),
-        Option("news", "News pings", Type.BOOLEAN)
-    ]
+    description="Choose which notifications you want to get"
 )
-async def notifications(inter, updates=False, news=False):
+async def notifications(inter):
     if inter.guild is None:
         return
-    roles = []
-    if updates:
-        updates_role = discord.utils.get(inter.guild.roles, name="Updates")
-        roles.append(updates_role)
-    if news:
-        news_role = discord.utils.get(inter.guild.roles, name="News")
-        roles.append(news_role)
-    await inter.author.add_roles(*roles)
-    table = '\n'.join(f"> **<@&{role.id}>**" for role in roles)
+    role_list = ""
+    s_roles = {"1": "Updates", "2": "News"}
+    menu = SelectMenu(
+            custom_id="s_roles",
+            placeholder="Select Role",
+            max_values=2,
+            options=[
+                MenuOption("Updates", "1", "Update pings"),
+                MenuOption("News", "2", "News ping")
+            ]
+        )
+    msg = await inter.reply("Choose your roles:", components=[menu])
+    def check(menu_inter):
+            return menu_inter.author == inter.author
+    try:
+        menu_inter = await msg.wait_for_dropdown(check, timeout=60)
+    except asyncio.TimeoutError:
+        await msg.edit(components=[])
+    elems = [s_roles[opt.value] for opt in menu_inter.select_menu.selected_options]
+    for x in range(0, len(elems)):
+        role_check = discord.utils.get(inter.guild.roles, name=elems[x])
+        if role_check not in inter.author.roles:
+            role_list += f'> **<@&{role_check.id}>** ping added\n'
+            await inter.author.add_roles(role_check)
+        else:
+            role_list = f'> **<@&{role_check.id}>** ping removed\n'
+            await inter.author.remove_roles(role_check)
     emb = discord.Embed(
         title="🔔 | Notifications",
-        description=f"**You've received these roles:**\n{table}",
+        description=f"{role_list}",
         color=discord.Color.gold()
     )
     emb.set_footer(text=inter.author, icon_url=inter.author.avatar_url)
-    await inter.respond(embed=emb)
+    await menu_inter.create_response(embed=emb,
+    components=[],
+    type=7)
 
 #--------------------------+
 #         Buttons          |
