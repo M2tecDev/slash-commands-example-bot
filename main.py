@@ -20,7 +20,7 @@ from pagination import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-inter_client = InteractionClient(client)
+inter_client = InteractionClient(client, test_guilds=[768247229840359465])
 token = str(os.environ.get('bot_token'))
 
 
@@ -265,7 +265,7 @@ async def notifications(inter: SlashInteraction, updates: bool = False, news: bo
     if list_of_removed:
         emb.add_field(name="Removed:", value=list_of_removed, inline=False)
     emb.set_footer(text=inter.author, icon_url=inter.author.avatar_url)
-    await inter.create_response(embed=emb, components=[], type=7)
+    await inter.create_response(embed=emb)
 
 #--------------------------+
 #         Buttons          |
