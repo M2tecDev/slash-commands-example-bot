@@ -1,13 +1,26 @@
 import asyncio
 import discord, os
 from discord.ext import commands
-from dislash import *
+from dislash import (
+    InteractionClient,
+    SlashInteraction,
+    Option,
+    OptionChoice,
+    OptionType,
+    ActionRow,
+    Button,
+    SelectMenu,
+    SelectOption,
+    ButtonStyle,
+    ResponseType,
+    application_commands
+)
 # A local file for cool menus
 from pagination import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-slash = SlashClient(client)
+inter_client = InteractionClient(client)
 token = str(os.environ.get('bot_token'))
 
 
@@ -23,34 +36,37 @@ async def ping(ctx):
 #--------------------------+
 #     Slash-Commands       |
 #--------------------------+
-@slash.command(description="Says Hello")
-@slash_commands.cooldown(1, 3, slash_commands.BucketType.member)
+@inter_client.slash_command(description="Says Hello")
+@application_commands.cooldown(1, 3, application_commands.BucketType.member)
 async def hello(ctx):
     await ctx.reply('Hello!')
 
 
-@slash.command(description="Wanna see it?")
+@inter_client.slash_command(description="Wanna see it?")
 async def secret(ctx):
     await ctx.reply("Confidential message 😓😲😔🥱😒😖", ephemeral=True)
 
 
-@slash.command(
+@inter_client.slash_command(
     description="Creates an embed",
     options=[
-        Option("title", "Creates a title", Type.STRING),
-        Option("description", "Creates a description", Type.STRING),
-        Option("color", "Colors the embed", Type.STRING),
-        Option("image_url", "URL of the embed's image", Type.STRING),
-        Option("footer", "Creates a footer", Type.STRING),
-        Option("footer_url", "URL of the footer image", Type.STRING)
-    ])
-async def embed(inter: SlashInteraction):
-    title = inter.get('title')
-    desc = inter.get('description')
-    color = inter.get('color')
-    image_url = inter.get('image_url')
-    footer = inter.get('footer')
-    footer_url = inter.get('footer_url')
+        Option("title", "Creates a title", OptionType.STRING),
+        Option("description", "Creates a description", OptionType.STRING),
+        Option("color", "Colors the embed", OptionType.STRING),
+        Option("image_url", "URL of the embed's image", OptionType.STRING),
+        Option("footer", "Creates a footer", OptionType.STRING),
+        Option("footer_url", "URL of the footer image", OptionType.STRING)
+    ]
+)
+async def embed(
+    inter: SlashInteraction,
+    title: str = None,
+    description: str = None,
+    color: str = None,
+    image_url: str = None,
+    footer: str = None,
+    footer_url: str = None
+):
     if color is not None:
         try:
             color = await commands.ColorConverter().convert(inter, color)
@@ -61,8 +77,8 @@ async def embed(inter: SlashInteraction):
     reply = discord.Embed(color=color)
     if title is not None:
         reply.title = title
-    if desc is not None:
-        reply.description = desc
+    if description is not None:
+        reply.description = description
     if image_url is not None:
         reply.set_image(url=image_url)
     pl = {}
@@ -77,22 +93,22 @@ async def embed(inter: SlashInteraction):
 #--------------------------+
 # Command with subcommands |
 #--------------------------+
-@slash.command(description="Sends a picture")
-async def pic(inter):
+@inter_client.slash_command(description="Sends a picture")
+async def pic(inter: SlashInteraction):
     # The basae command for subcommands
-    # Check the code below
     pass
 
 @pic.sub_command(
     description="Pictures of animals",
     options=[
-        Option("choice", "Choose on of them", Type.STRING, True, choices=[
+        Option("choice", "Choose on of them", OptionType.STRING, True, choices=[
             OptionChoice("Cat", "cat"),
             OptionChoice("Dog", "dog"),
             OptionChoice("Parrot", "parrot")
         ])
-    ])
-async def animal(inter, choice):
+    ]
+)
+async def animal(inter: SlashInteraction, choice: str):
     # This command is visivle as "/pic animal"
     pics = {
         "cat": "https://cdn.discordapp.com/attachments/642107341868630024/810550425735790602/Depositphotos_9979039_xl-2015.png",
@@ -109,13 +125,14 @@ async def animal(inter, choice):
 @pic.sub_command(
     description="Pictures os cars",
     options=[
-        Option("choice", "Choose one of these", Type.STRING, True, choices=[
+        Option("choice", "Choose one of these", OptionType.STRING, True, choices=[
             OptionChoice("F1", "f1"),
             OptionChoice("Dragster", "dragster"),
             OptionChoice("Monstertruck", "monstertruck")
         ])
-    ])
-async def car(inter, choice):
+    ]
+)
+async def car(inter: SlashInteraction, choice: str):
     # This command is visivle as "/pic car"
     pics = {
         "f1": "https://cdn.discordapp.com/attachments/642107341868630024/810550602304061470/141385-27.png",
@@ -132,13 +149,14 @@ async def car(inter, choice):
 @pic.sub_command(
     description="Pictures of aircrafts",
     options=[
-        Option("choice", "Choose one of these", Type.STRING, True, choices=[
+        Option("choice", "Choose one of these", OptionType.STRING, True, choices=[
             OptionChoice("Airbus", "airbus"),
             OptionChoice("Helicopter", "helicopter"),
             OptionChoice("Supersonic Jet", "jet")
         ])
-    ])
-async def aircraft(inter, choice):
+    ]
+)
+async def aircraft(inter: SlashInteraction, choice: str):
     # This command is visivle as "/pic aircraft"
     pics = {
         "airbus": "https://cdn.discordapp.com/attachments/642107341868630024/810551182153089044/42199782_401.png",
@@ -155,18 +173,20 @@ async def aircraft(inter, choice):
 #--------------------------+
 #      Other commands      |
 #--------------------------+
-@slash.command(
+@inter_client.slash_command(
     description="Say something",
-    options=[Option("text", "Type anything", Type.STRING, True)])
-async def say(ctx):
-    await ctx.send(ctx.data.get('text'))
+    options=[Option("text", "Type anything", OptionType.STRING, True)]
+)
+async def say(inter: SlashInteraction, text: str):
+    await inter.create_response(text)
 
 
-@slash.command(
+@inter_client.slash_command(
     name="user-info",
     description="Shows user profile",
-    options=[Option("user", "Which user to inspect", Type.USER)] )
-async def user_info(ctx: SlashInteraction):
+    options=[Option("user", "Which user to inspect", OptionType.USER)]
+)
+async def user_info(inter: SlashInteraction, user: discord.User = None):
     badges = {
         "staff": "<:staff:812692120049156127>",
         "partner": "<:partner:812692120414322688>",
@@ -177,7 +197,7 @@ async def user_info(ctx: SlashInteraction):
         "hypesquad_balance": "<:balance:812692120270798878>",
         "verified_bot_developer": "<:verified_bot_developer:812692120133042178>"
     }
-    user = ctx.get("user", ctx.author)
+    user = user or inter.author
     badge_string = ' '.join(badges[pf.name] for pf in user.public_flags.all() if pf.name in badges)
     created_at = str(user.created_at)[:-7]
     reply = discord.Embed(color=discord.Color.blurple())
@@ -196,56 +216,61 @@ async def user_info(ctx: SlashInteraction):
             name="Badges",
             value=f"`->` {badge_string}"
         )
-    await ctx.send(embed=reply)
+    await inter.create_response(embed=reply)
 
 
-@slash.command(
-    description="Choose which notifications you want to get"
+@inter_client.slash_command(
+    description="Choose which notifications you want to get",
+    options=[
+        Option("updates", "Update pings", OptionType.BOOLEAN),
+        Option("news", "News pings", OptionType.BOOLEAN)
+    ]
 )
-async def notifications(inter):
+async def notifications(inter: SlashInteraction, updates: bool = False, news: bool = False):
     if inter.guild is None:
         return
-    role_list = ""
-    s_roles = {"1": "Updates", "2": "News"}
-    menu = SelectMenu(
-            custom_id="s_roles",
-            placeholder="Select Role",
-            max_values=2,
-            options=[
-                MenuOption("Updates", "1", "Update pings"),
-                MenuOption("News", "2", "News ping")
-            ]
-        )
-    msg = await inter.reply("Choose your roles:", components=[menu])
-    def check(menu_inter):
-            return menu_inter.author == inter.author
+    # Get roles
+    updates_role = discord.utils.get(inter.guild.roles, name="Updates")
+    news_role = discord.utils.get(inter.guild.roles, name="News")
+    # Which roles to add / remove
+    to_add = []
+    to_remove = []
+    if updates:
+        to_add.append(updates_role)
+    else:
+        to_remove.append(updates_role)
+    if news:
+        to_add.append(news_role)
+    else:
+        to_remove.append(news_role)
+    # Add / remove the roles
     try:
-        menu_inter = await msg.wait_for_dropdown(check, timeout=60)
-    except asyncio.TimeoutError:
-        await msg.edit(components=[])
-    elems = [s_roles[opt.value] for opt in menu_inter.select_menu.selected_options]
-    for x in range(0, len(elems)):
-        role_check = discord.utils.get(inter.guild.roles, name=elems[x])
-        if role_check not in inter.author.roles:
-            role_list += f'> **<@&{role_check.id}>** ping added\n'
-            await inter.author.add_roles(role_check)
-        else:
-            role_list = f'> **<@&{role_check.id}>** ping removed\n'
-            await inter.author.remove_roles(role_check)
+        roles = [role for role in to_remove if role in inter.author.roles]
+        if to_add:
+            await inter.author.add_roles(*to_add)
+        if roles:
+            await inter.author.remove_roles(*roles)
+    except Exception:
+        pass
+    # Build the tables
+    list_of_added = '\n'.join(f"> <@&{role.id}>" for role in to_add)
+    list_of_removed = '\n'.join(f"> <@&{role.id}>" for role in to_remove)
+    # Send an embed
     emb = discord.Embed(
         title="🔔 | Notifications",
-        description=f"{role_list}",
         color=discord.Color.gold()
     )
+    if list_of_added:
+        emb.add_field(name="Added:", value=list_of_added, inline=False)
+    if list_of_removed:
+        emb.add_field(name="Removed:", value=list_of_removed, inline=False)
     emb.set_footer(text=inter.author, icon_url=inter.author.avatar_url)
-    await menu_inter.create_response(embed=emb,
-    components=[],
-    type=7)
+    await inter.create_response(embed=emb, components=[], type=7)
 
 #--------------------------+
 #         Buttons          |
 #--------------------------+
-@slash.command(description="Play with buttons")
+@inter_client.slash_command(description="Play with buttons")
 async def buttons(ctx: SlashInteraction):
     pages = [
         "This is page 1.\n"\
@@ -312,7 +337,7 @@ async def buttons(ctx: SlashInteraction):
     await msg.edit(components=[])
 
 
-@slash.command(name="button-controls", description="Cool thing")
+@inter_client.slash_command(name="button-controls", description="Cool thing")
 async def menu_example(ctx: SlashInteraction):
     # Build a menu
     menu = Element(
@@ -420,7 +445,7 @@ async def menu_example(ctx: SlashInteraction):
         await msg.edit(embed=emb, components=[button_row_1, button_row_2])
 
 
-@slash.command(name="select-menu", description="Play with select menus")
+@inter_client.slash_command(name="select-menu", description="Play with select menus")
 async def select_menu(inter: SlashInteraction):
     emojis = {"r": "🔴", "g": "🟢", "b": "🔵"}
     menu = SelectMenu(
@@ -428,9 +453,9 @@ async def select_menu(inter: SlashInteraction):
         placeholder="Select a couple of options",
         max_values=3,
         options=[
-            MenuOption("Red", "r", "Represents red color", emojis['r']),
-            MenuOption("Green", "g", "Represents green color", emojis['g']),
-            MenuOption("Blue", "b", "Represents blue color", emojis['b'])
+            SelectOption("Red", "r", "Represents red color", emojis['r']),
+            SelectOption("Green", "g", "Represents green color", emojis['g']),
+            SelectOption("Blue", "b", "Represents blue color", emojis['b'])
         ]
     )
     msg = await inter.reply("Choose your colors:", components=[menu])
@@ -445,11 +470,11 @@ async def select_menu(inter: SlashInteraction):
     
     elems = [emojis[opt.value] for opt in menu_inter.select_menu.selected_options]
     await menu_inter.create_response(
-        f"Your colors: {' '.join(elems)}",
+        content=f"Your colors: {' '.join(elems)}",
         components=[],
         type=7
     )
-    
+
 
 #--------------------------+
 #         Events           |
@@ -459,7 +484,7 @@ async def _on_ready():
 client.add_listener(_on_ready, 'on_ready')
 
 
-@slash.event
+@inter_client.event
 async def on_ready():
     print("Slash client is ready")
 
