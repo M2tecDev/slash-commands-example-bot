@@ -20,7 +20,7 @@ from pagination import *
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-inter_client = InteractionClient(client, test_guilds=[768247229840359465])
+inter_client = InteractionClient(client)
 token = str(os.environ.get('bot_token'))
 
 
