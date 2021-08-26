@@ -78,7 +78,7 @@ async def embed(
     if title is not None:
         reply.title = title
     if description is not None:
-        em.description = ""
+        reply.description = ""
         split_string = description.replace("\\n", "\n")
         for i in range(0,len(split_string)):
             em.description += split_string[i]
