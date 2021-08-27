@@ -81,7 +81,7 @@ async def embed(
         reply.description = ""
         split_string = description.replace("\\n", "\n")
         for i in range(0,len(split_string)):
-            em.description += split_string[i]
+            reply.description += split_string[i]
     if image_url is not None:
         reply.set_image(url=image_url)
     pl = {}
