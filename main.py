@@ -178,7 +178,10 @@ async def aircraft(inter: SlashInteraction, choice: str):
     options=[Option("text", "Type anything", OptionType.STRING, True)]
 )
 async def say(inter: SlashInteraction, text: str):
-    await inter.create_response(text)
+    if "@" in text:
+        await inter.create_response("You can´t use @ here", ephemeral=True)
+    else:
+        await inter.create_response(text)
 
 
 @inter_client.slash_command(
